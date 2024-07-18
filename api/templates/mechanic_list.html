@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Mechanics List{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5">Available Mechanics</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for mechanic in mechanics %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    {% if mechanic.profile_image %}
+                        <img src="{{ mechanic.profile_image.url }}" class="card-img-top" alt="{{ mechanic.user.username }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ mechanic.user.get_full_name }}</h5>
+                        <p class="card-text"><small class="text-muted">{{ mechanic.city }}</small></p>
+                        <p class="card-text">{{ mechanic.bio|truncatechars:100 }}</p>
+                        <p class="card-text">
+                            <strong>Skills:</strong> 
+                            {% for skill in mechanic.skills.all %}
+                                <span class="badge bg-secondary">{{ skill.name }}</span>
+                            {% empty %}
+                                <span class="text-muted">No skills listed</span>
+                            {% endfor %}
+                        </p>
+                        <p class="card-text"><strong>Hourly Rate:</strong> ${{ mechanic.hourly_rate|floatformat:2 }}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a href="{% url 'order_mechanic' mechanic.user.id %}" class="btn btn-primary w-100">Request Service</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <p class="text-center fs-4 text-muted">No mechanics available at the moment.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

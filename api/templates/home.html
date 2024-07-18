@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}AutoConnect - Home{% endblock %}
+
+{% block content %}
+<div class="container-fluid bg-primary text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">Welcome to AutoConnect!</h1>
+                <p class="lead fs-4 mb-4">Connecting drivers with auto mechanics wherever they are.</p>
+                <p class="fs-5 mb-4">Our platform helps drivers find reliable mechanics quickly and easily.</p>
+                {% if user.is_authenticated %}
+                    <a class="btn btn-light btn-lg" href="{% url 'profile' %}" role="button">Go to your profile</a>
+                {% else %}
+                    <a class="btn btn-light btn-lg me-2" href="{% url 'signup' %}" role="button">Sign Up Now</a>
+                    <a class="btn btn-outline-light btn-lg" href="{% url 'login' %}" role="button">Login</a>
+                {% endif %}
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80" alt="Car Repair" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <h2 class="text-center mb-4">How It Works</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80" class="card-img-top" alt="Driver" style="height: 200px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">For Drivers</h5>
+                    <p class="card-text">Request service from trusted mechanics near your location.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80" class="card-img-top" alt="Mechanic" style="height: 200px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">For Mechanics</h5>
+                    <p class="card-text">Connect with drivers in need of your services and grow your business.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80" class="card-img-top" alt="Secure Payment" style="height: 200px; object-fit: cover;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Secure Payments</h5>
+                    <p class="card-text">Enjoy secure transactions through our platform.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user_type == 'dr' %}
+<div class="container mb-5">
+    <h2 class="text-center mb-4">Available Mechanics</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for mechanic in mechanics %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=871&q=80" class="card-img-top" alt="Mechanic" style="height: 200px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ mechanic.user.username }}</h5>
+                    <p class="card-text">{{ mechanic.bio|truncatechars:100 }}</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{% url 'order_mechanic' mechanic.id %}" class="btn btn-primary w-100">Request Service</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center">No mechanics available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if user_type == 'dr' %}
+<div class="container mb-5">
+    <h2 class="text-center mb-4">Your Orders</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for order in driver_orders %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80" class="card-img-top" alt="Order" style="height: 200px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">Order with {{ order.mechanic.username }}</h5>
+                    <p class="card-text">{{ order.note|truncatechars:100 }}</p>
+                    <p class="card-text"><small class="text-muted">Ordered on {{ order.ordered_at|date:"F d, Y" }}</small></p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <span class="badge bg-{{ order.status|lower }}">{{ order.status }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center">You haven't placed any orders yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% elif user_type == 'me' %}
+<div class="container mb-5">
+    <h2 class="text-center mb-4">Received Orders</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for order in mechanic_orders %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <img src="https://images.unsplash.com/photo-1504222490345-c075b6008014?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80" class="card-img-top" alt="Received Order" style="height: 200px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">Order from {{ order.driver.username }}</h5>
+                    <p class="card-text">{{ order.note|truncatechars:100 }}</p>
+                    <p class="card-text"><small class="text-muted">Ordered on {{ order.ordered_at|date:"F d, Y" }}</small></p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <span class="badge bg-{{ order.status|lower }}">{{ order.status }}</span>
+                    {% if order.status == 'pending' %}
+                        <a href="{% url 'accept_order' order.id %}" class="btn btn-success btn-sm float-end">Accept</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center">You haven't received any orders yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

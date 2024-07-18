@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ user.username }}'s Profile</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Profile Information</h5>
+            <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+            <p class="card-text"><strong>City:</strong> {{ profile.city }}</p>
+            <p class="card-text"><strong>Latitude:</strong> {{ profile.lat }}</p>
+            <p class="card-text"><strong>Longitude:</strong> {{ profile.long }}</p>
+            <p class="card-text"><strong>Bio:</strong> {{ profile.bio }}</p>
+            <p class="card-text"><strong>User Type:</strong> {{ profile.get_user_type_display }}</p>
+            <p class="card-text"><strong>Hourly Rate:</strong> {{ profile.hourly_rate }}</p>
+            <p class="card-text"><strong>Telephone Number:</strong> {{ profile.telephone_number }}</p>
+            {% if profile.profile_image %}
+                <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="img-thumbnail">
+            {% else %}
+                <p>No profile image uploaded.</p>
+            {% endif %}
+            <a href="{% url 'complete_profile' %}" class="btn btn-primary mt-3">Edit Profile</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
