@@ -116,51 +116,35 @@ def profile_view(request):
 def order_mechanic_view(request, mechanic_id):
     mechanic = get_object_or_404(User, id=mechanic_id, profile__user_type='me')
     if request.method == 'POST':
-        note = request.POST.get('note')
-        location = request.POST.get('location')
-        preferred_date_str = request.POST.get('preferred_date')
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.driver = request.user
+            order.mechanic = mechanic
+            order.save()
 
-        if note and location and preferred_date_str:
-            try:
-                preferred_date = parse_date(preferred_date_str)
-                if preferred_date:
-                    preferred_datetime = datetime.combine(
-                        preferred_date, time())
-                    preferred_datetime = make_aware(preferred_datetime)
-                else:
-                    raise ValueError("Invalid date format")
+            # Generate the order URL
+            order_url = request.build_absolute_uri(
+                reverse('accept_order', args=[order.id]))
 
-                order = Order.objects.create(
-                    driver=request.user,
-                    mechanic=mechanic,
-                    note=note,
-                    location=location,
-                    service_date=preferred_datetime
-                )
+            # Send email
+            send_mail(
+                'New Mechanic Order',
+                f'{request.user.username} has requested your service.\nLocation: {order.location}\nPreferred Date: {order.service_date}\nNote: {order.note}\n\nClick here to accept the order: {order_url}',
+                settings.DEFAULT_FROM_EMAIL,
+                [mechanic.email],
+            )
 
-                # Generate the order URL
-                order_url = request.build_absolute_uri(
-                    reverse('accept_order', args=[order.id]))
-
-                # Send email
-                send_mail(
-                    'New Mechanic Order',
-                    f'{request.user.username} has requested your service.\nLocation: {location}\nPreferred Date: {preferred_date_str}\nNote: {note}\n\nClick here to accept the order: {order_url}',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [mechanic.email],
-                )
-
-                messages.success(
-                    request, "Your service request has been sent successfully!")
-                return redirect('home')
-            except ValueError:
-                messages.error(
-                    request, "Invalid date format. Please use YYYY-MM-DD.")
+            messages.success(
+                request, "Your service request has been sent successfully!")
+            return redirect('home')
         else:
-            messages.error(
-                request, "Please provide a note, location, and preferred date.")
+            messages.error(request, "Please fill in all fields correctly.")
 
-    return render(request, 'order_mechanic.html', {'mechanic': mechanic})
+    else:
+        form = OrderForm()
+
+    return render(request, 'order_mechanic.html', {'mechanic': mechanic, 'form': form})
 
 
 @login_required

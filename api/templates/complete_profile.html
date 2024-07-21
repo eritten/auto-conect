@@ -97,6 +97,8 @@
 
         <button type="submit" class="btn btn-primary">Save Profile</button>
     </form>
+
+    <div id="map" style="width: 100%; height: 400px;"></div>
 </div>
 
 <script>
@@ -115,5 +117,29 @@
         showHideHourlyRate(); // Set the initial state
         document.getElementById("id_user_type").addEventListener("change", showHideHourlyRate);
     });
+
+    mapboxgl.accessToken = '{{ MAPBOX_KEY }}'; // Replace with your actual Mapbox access token
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [{{ form.long.value|default:"-0.1276" }}, {{ form.lat.value|default:"51.5074" }}], // Default to London
+        zoom: 12
+    });
+
+    var marker = new mapboxgl.Marker({
+        draggable: true
+    })
+    .setLngLat([{{ form.long.value|default:"-0.1276" }}, {{ form.lat.value|default:"51.5074" }}])
+    .addTo(map);
+
+    function onDragEnd() {
+        var lngLat = marker.getLngLat();
+        document.getElementById('id_lat').value = lngLat.lat;
+        document.getElementById('id_long').value = lngLat.lng;
+    }
+
+    marker.on('dragend', onDragEnd);
 </script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css" rel="stylesheet" />
 {% endblock %}

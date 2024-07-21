@@ -6,6 +6,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import Profile
+from mapbox_location_field.forms import LocationField
 
 
 class SignUpForm(UserCreationForm):
@@ -37,10 +38,12 @@ class ProfileForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         required=False
     )
+    location = LocationField(map_attrs={"center": [
+                             30, 30], "marker_color": "red", "placeholder": "Select your location"})
 
     class Meta:
         model = Profile
-        fields = ['profile_image', 'city', 'lat', 'long', 'bio',
+        fields = ['profile_image', 'city', 'location', 'bio',
                   'user_type', 'hourly_rate', 'telephone_number', 'skills']
 
     def __init__(self, *args, **kwargs):
@@ -54,12 +57,18 @@ class ProfileForm(forms.ModelForm):
 
 
 class ServiceRequestForm(forms.ModelForm):
+    location = LocationField(map_attrs={"center": [
+                             30, 30], "marker_color": "blue", "placeholder": "Service location"})
+
     class Meta:
         model = ServiceRequest
         fields = ['description', 'location']
 
 
 class OrderForm(forms.ModelForm):
+    location = LocationField(map_attrs={"center": [
+                             30, 30], "marker_color": "green", "placeholder": "Order location"})
+
     class Meta:
         model = Order
         fields = ['note', 'location', 'service_date']

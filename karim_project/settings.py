@@ -40,8 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework_simplejwt',
-    'djoser'
+    # 'rest_framework_simplejwt',
+    # 'djoser',
+    'mapbox_location_field'
 ]
 
 MIDDLEWARE = [
@@ -145,3 +146,4 @@ EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 DEFAULT_FROM_EMAIL = 'eritten2@gmail.com'
 
+MAPBOX_KEY = "pk.eyJ1IjoiZXJpdHRlbiIsImEiOiJjbHl2OGF1aTYxOXM2MnFzaDQ4bnc2bXV5In0.YtUxlC3uD0BJESlCpVRGgQ"

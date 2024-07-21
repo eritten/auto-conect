@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from mapbox_location_field.models import LocationField
 
 
 class Skill(models.Model):
@@ -15,10 +16,7 @@ class Profile(models.Model):
     profile_image = models.ImageField(
         upload_to="profile-images", blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
-    lat = models.DecimalField(
-        max_digits=9, decimal_places=6, blank=True, null=True)
-    long = models.DecimalField(
-        max_digits=9, decimal_places=6, blank=True, null=True)
+    location = LocationField(map_attrs={"placeholder": "Pick your location"})
     bio = models.TextField(blank=True, null=True)
     USER_TYPES = (('dr', 'Driver'), ('me', 'Mechanic'))
     user_type = models.CharField(
@@ -72,6 +70,7 @@ class Order(models.Model):
         User, on_delete=models.CASCADE, related_name='mechanic_orders')
     note = models.TextField()
     location = models.CharField(max_length=255)
+    location = LocationField(map_attrs={"placeholder": "Service location"})
     ordered_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -88,6 +87,7 @@ class ServiceRequest(models.Model):
         User, on_delete=models.CASCADE, related_name='service_requests')
     description = models.TextField()
     location = models.CharField(max_length=255)
+    location = LocationField(map_attrs={"placeholder": "Request location"})
     created_at = models.DateTimeField(auto_now_add=True)
     is_fulfilled = models.BooleanField(default=False)
 
