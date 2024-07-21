@@ -118,7 +118,7 @@
         document.getElementById("id_user_type").addEventListener("change", showHideHourlyRate);
     });
 
-    mapboxgl.accessToken = '{{ MAPBOX_KEY }}'; // Replace with your actual Mapbox access token
+    mapboxgl.accessToken = '{{ mapbox_token }}'; // Replace with your actual Mapbox access token
     var map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',

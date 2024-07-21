@@ -37,6 +37,16 @@
                             {% endfor %}
                         </p>
                         <p class="card-text"><strong>Hourly Rate:</strong> ${{ mechanic.hourly_rate|floatformat:2 }}</p>
+                        <p class="card-text">
+                            <strong>Location:</strong>
+                            {% if mechanic.location %}
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ mechanic.location.latitude }},{{ mechanic.location.longitude }}" target="_blank">
+                                    View on Map
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Location not specified</span>
+                            {% endif %}
+                        </p>
                     </div>
                     <div class="card-footer bg-transparent border-0">
                         <a href="{% url 'order_mechanic' mechanic.user.id %}" class="btn btn-primary w-100">Request Service</a>
@@ -66,18 +76,4 @@
                         <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                         <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-                    {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
-    {% endif %}
-</div>
-{% endblock %}
+                    {% 

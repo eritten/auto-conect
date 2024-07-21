@@ -103,7 +103,7 @@ def complete_profile_view(request):
         form = ProfileForm(instance=request.user.profile,
                            user_type=request.user.profile.user_type)
 
-    return render(request, 'complete_profile.html', {'form': form})
+    return render(request, 'complete_profile.html', {'form': form, 'mapbox_token': settings.MAPBOX_KEY})
 
 
 @login_required
@@ -140,11 +140,10 @@ def order_mechanic_view(request, mechanic_id):
             return redirect('home')
         else:
             messages.error(request, "Please fill in all fields correctly.")
-
     else:
         form = OrderForm()
 
-    return render(request, 'order_mechanic.html', {'mechanic': mechanic, 'form': form})
+    return render(request, 'order_mechanic.html', {'mechanic': mechanic, 'form': form, 'mapbox_token': settings.MAPBOX_KEY})
 
 
 @login_required
@@ -179,7 +178,7 @@ def service_request_view(request):
     else:
         form = ServiceRequestForm()
 
-    return render(request, 'service_request.html', {'form': form})
+    return render(request, 'service_request.html', {'form': form, 'mapbox_token': settings.MAPBOX_KEY})
 
 
 class MechanicListView(ListView):
