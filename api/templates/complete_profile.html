@@ -56,21 +56,11 @@
         </div>
 
         <div class="form-group">
-            <label for="id_lat">Latitude</label>
-            {{ form.lat }}
-            {% if form.lat.errors %}
+            <label for="id_location">Location (lat, long)</label>
+            <input type="text" name="location" id="id_location" class="form-control" value="{{ form.location.value|default_if_none:'' }}">
+            {% if form.location.errors %}
                 <div class="alert alert-danger">
-                    {{ form.lat.errors }}
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            <label for="id_long">Longitude</label>
-            {{ form.long }}
-            {% if form.long.errors %}
-                <div class="alert alert-danger">
-                    {{ form.long.errors }}
+                    {{ form.location.errors }}
                 </div>
             {% endif %}
         </div>
@@ -98,54 +88,101 @@
         <button type="submit" class="btn btn-primary">Save Profile</button>
     </form>
 
-    <div id="map" style="width: 100%; height: 400px;"></div>
+    <div id="map" style="width: 100%; height: 400px; margin-top: 20px;"></div>
 </div>
 
-<script>
-    function showHideHourlyRate() {
-        var userType = document.getElementById("id_user_type").value;
-        var hourlyRateField = document.getElementById("hourly_rate_field");
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
 
-        if (userType === "dr") {
-            hourlyRateField.style.display = "none";
+<script>
+    mapboxgl.accessToken = '{{ mapbox_token }}';
+    let map, marker;
+    
+    function initializeMap(initialCenter = [0, 0]) {
+        console.log("Initializing map with center:", initialCenter);
+        map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: initialCenter,
+            zoom: 12
+        });
+
+        marker = new mapboxgl.Marker({
+            draggable: true
+        })
+        .setLngLat(initialCenter)
+        .addTo(map);
+
+        marker.on('dragend', onDragEnd);
+
+        map.on('load', function() {
+            console.log("Map loaded successfully");
+        });
+
+        map.on('error', function(e) {
+            console.error("Map error:", e);
+        });
+    }
+
+    function onDragEnd() {
+        const lngLat = marker.getLngLat();
+        updateLocationField(lngLat.lat, lngLat.lng);
+    }
+
+    function updateLocationField(lat, lng) {
+        const locationField = document.getElementById('id_location');
+        if (locationField) {
+            locationField.value = `${lat},${lng}`;
+            console.log("Updated location field:", locationField.value);
         } else {
-            hourlyRateField.style.display = "block";
+            console.error("Location field not found");
         }
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        showHideHourlyRate(); // Set the initial state
-        document.getElementById("id_user_type").addEventListener("change", showHideHourlyRate);
-    });
-
-    mapboxgl.accessToken = '{{ mapbox_token }}'; // Replace with your actual Mapbox access token
-    var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [{{ form.long.value|default:"-0.1276" }}, {{ form.lat.value|default:"51.5074" }}], // Default to London
-        zoom: 12
-    });
-
-    var marker = new mapboxgl.Marker({
-        draggable: true
-    })
-    .setLngLat([{{ form.long.value|default:"-0.1276" }}, {{ form.lat.value|default:"51.5074" }}])
-    .addTo(map);
-
-    function onDragEnd() {
-        var lngLat = marker.getLngLat();
-        document.getElementById('id_lat').value = lngLat.lat;
-        document.getElementById('id_long').value = lngLat.lng;
+    function setMapLocation(lat, lng) {
+        if (map && marker) {
+            map.setCenter([lng, lat]);
+            marker.setLngLat([lng, lat]);
+            updateLocationField(lat, lng);
+        } else {
+            console.error("Map or marker not initialized");
+        }
     }
 
-    marker.on('dragend', onDragEnd);
+    function showHideHourlyRate() {
+        const userType = document.getElementById("id_user_type").value;
+        const hourlyRateField = document.getElementById("hourly_rate_field");
+        hourlyRateField.style.display = userType === "dr" ? "none" : "block";
+    }
 
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log("DOM fully loaded");
+        showHideHourlyRate();
+        document.getElementById("id_user_type").addEventListener("change", showHideHourlyRate);
 
-    navigator.geolocation.getCurrentPosition((position) => {
-        alert(position.coords.latitude + " " + position.coords.longitude)
-    })
+        initializeMap();
 
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    console.log("Got user location:", latitude, longitude);
+                    setMapLocation(latitude, longitude);
+                },
+                (error) => {
+                    console.error("Error getting location:", error.message);
+                }
+            );
+        } else {
+            console.log("Geolocation is not supported by this browser.");
+        }
+
+        const locationField = document.getElementById('id_location');
+        if (locationField && locationField.value) {
+            const [lat, lng] = locationField.value.split(',').map(Number);
+            console.log("Setting initial location from field:", lat, lng);
+            setMapLocation(lat, lng);
+        }
+    });
 </script>
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js"></script>
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css" rel="stylesheet" />
 {% endblock %}

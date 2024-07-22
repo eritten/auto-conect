@@ -1,12 +1,8 @@
-from .models import Review
-from .models import Order
-from .models import ServiceRequest
-from .models import Profile, Skill
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .models import Profile
 from mapbox_location_field.forms import LocationField
+from .models import Profile, Skill, ServiceRequest, Order, Review, Vehicle, Service, Availability
 
 
 class SignUpForm(UserCreationForm):
@@ -59,22 +55,57 @@ class ProfileForm(forms.ModelForm):
 class ServiceRequestForm(forms.ModelForm):
     location = LocationField(map_attrs={"center": [
                              30, 30], "marker_color": "blue", "placeholder": "Service location"})
+    vehicle = forms.ModelChoiceField(
+        queryset=Vehicle.objects.none(), required=False)
 
     class Meta:
         model = ServiceRequest
-        fields = ['description', 'location']
+        fields = ['description', 'location', 'vehicle']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(ServiceRequestForm, self).__init__(*args, **kwargs)
+        if user:
+            self.fields['vehicle'].queryset = Vehicle.objects.filter(
+                owner=user)
 
 
 class OrderForm(forms.ModelForm):
     location = LocationField(map_attrs={"center": [
                              30, 30], "marker_color": "green", "placeholder": "Order location"})
+    services = forms.ModelMultipleChoiceField(
+        queryset=Service.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True
+    )
+    vehicle = forms.ModelChoiceField(
+        queryset=Vehicle.objects.none(), required=False)
 
     class Meta:
         model = Order
-        fields = ['note', 'location', 'service_date']
+        fields = ['note', 'location', 'service_date', 'services', 'vehicle']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(OrderForm, self).__init__(*args, **kwargs)
+        if user:
+            self.fields['vehicle'].queryset = Vehicle.objects.filter(
+                owner=user)
 
 
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
         fields = ['content', 'rating']
+
+
+class VehicleForm(forms.ModelForm):
+    class Meta:
+        model = Vehicle
+        fields = ['make', 'model', 'year', 'vin']
+
+
+class AvailabilityForm(forms.ModelForm):
+    class Meta:
+        model = Availability
+        fields = ['date', 'start_time', 'end_time']

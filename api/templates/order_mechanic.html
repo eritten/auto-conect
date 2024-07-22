@@ -28,11 +28,19 @@
                         <div class="mb-3">
                             <label for="location" class="form-label">Your Location</label>
                             <div id="map" style="height: 400px;"></div>
-                            <input type="hidden" id="location" name="location">
+                            <input type="text" class="form-control mt-2" id="location" name="location" readonly>
                         </div>
                         <div class="mb-3">
-                            <label for="preferred_date" class="form-label">Preferred Service Date</label>
-                            <input type="date" class="form-control" id="preferred_date" name="preferred_date">
+                            <label for="service_date" class="form-label">Preferred Service Date</label>
+                            <input type="date" class="form-control" id="service_date" name="service_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Services</label>
+                            {{ form.services }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="vehicle" class="form-label">Vehicle</label>
+                            {{ form.vehicle }}
                         </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">Request Service</button>
@@ -45,36 +53,64 @@
     </div>
 </div>
 
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+
 <script>
-    // Set min date to today
-    document.getElementById('preferred_date').min = new Date().toISOString().split("T")[0];
-
-    // Initialize mapbox
     mapboxgl.accessToken = '{{ mapbox_token }}';
-    var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [longitude, latitude], // set default location
-        zoom: 12
-    });
+    var map, marker;
 
-    var marker = new mapboxgl.Marker({
-        draggable: true
-    })
-    .setLngLat([longitude, latitude])
-    .addTo(map);
+    function initializeMap(lat, lng) {
+        map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [lng, lat],
+            zoom: 12
+        });
+
+        marker = new mapboxgl.Marker({
+            draggable: true
+        })
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+        marker.on('dragend', onDragEnd);
+
+        map.on('click', function(e) {
+            marker.setLngLat(e.lngLat);
+            updateLocationField(e.lngLat.lat, e.lngLat.lng);
+        });
+    }
 
     function onDragEnd() {
         var lngLat = marker.getLngLat();
-        document.getElementById('location').value = lngLat.lng + ',' + lngLat.lat;
+        updateLocationField(lngLat.lat, lngLat.lng);
     }
 
-    marker.on('dragend', onDragEnd);
+    function updateLocationField(lat, lng) {
+        document.getElementById('location').value = lng + ',' + lat;
+    }
 
-    map.on('click', function(e) {
-        var coordinates = e.lngLat;
-        marker.setLngLat(coordinates);
-        document.getElementById('location').value = coordinates.lng + ',' + coordinates.lat;
+    // Get current location and initialize map
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            initializeMap(lat, lng);
+            updateLocationField(lat, lng);
+        }, function(error) {
+            console.error("Error getting location:", error);
+            initializeMap(0, 0);  // Default to (0, 0) if geolocation fails
+        });
+    } else {
+        console.log("Geolocation is not supported by this browser.");
+        initializeMap(0, 0);  // Default to (0, 0) if geolocation is not supported
+    }
+
+    // Set min date to today for service_date
+    document.addEventListener('DOMContentLoaded', function() {
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementById('service_date').min = today;
     });
 </script>
 {% endblock %}

@@ -10,7 +10,9 @@ from api.views import (
     mechanic_list_view,
     service_request_view,
     MechanicListView,
-    accept_order_view
+    accept_order_view,
+    add_vehicle_view,
+    set_availability_view
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -29,9 +31,9 @@ urlpatterns = [
     path('mechanics/', mechanic_list_view, name='mechanic_list'),
     path('service-request/', service_request_view, name='service_request'),
     path('mechanics-list/', MechanicListView.as_view(), name='mechanics_list'),
-    path('accept-order/<int:order_id>/',
-         accept_order_view, name='accept_order'),
-
+    path('accept-order/<int:order_id>/', accept_order_view, name='accept_order'),
+    path('add-vehicle/', add_vehicle_view, name='add_vehicle'),
+    path('set-availability/', set_availability_view, name='set_availability'),
 ]
 
 if settings.DEBUG:
